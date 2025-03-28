@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">HeroesScreen</string>
+    <string name="header_text">Choose your hero</string>
+    <string name="name1_text">Deadpool</string>
+    <string name="name2_text">Iron Man</string>
+    <string name="name3_text">Spider Man</string>
+</resources>
