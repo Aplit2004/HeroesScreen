@@ -4,4 +4,7 @@
     <string name="name1_text">Deadpool</string>
     <string name="name2_text">Iron Man</string>
     <string name="name3_text">Spider Man</string>
+    <string name="deadpool_text">Please don\'t make the super suit green...or animated!</string>
+    <string name="ironman_text">I AM IRON MAN</string>
+    <string name="spiderman_text">In iron suit</string>
 </resources>
