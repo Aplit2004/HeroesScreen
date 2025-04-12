@@ -1,5 +1,6 @@
 package com.example.heroesscreen
 
+import android.media.Image
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -37,6 +38,52 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.squareup.moshi.Json
+import com.squareup.moshi.Moshi
+import retrofit2.Call
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.http.GET
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.http.Query
+import java.math.BigInteger
+import java.security.MessageDigest
+
+data class MarvelResponse(
+    @Json(name = "data") val data: CharacterData
+)
+
+data class CharacterData(
+    @Json(name = "results") val results: List<Character>
+)
+
+data class Character(
+    @Json(name = "id") val id: Int,
+    @Json(name = "name") val name: String,
+    @Json(name = "description") val description: String,
+    @Json(name = "thumbnail") val thumbnail: Image
+)
+
+interface MarvelApi {
+    @GET("/public/characters")
+    fun getCharacters(
+        @Query("apikey") apiKey: String,
+        @Query("ts") ts: String,
+        @Query("hash") hash: String
+    ): Call<MarvelResponse>
+}
+
+object RetrofitClient {
+    private const val BASE_URL = "https://gateway.marvel.com/v1"
+
+    private val retrofit = Retrofit.Builder()
+        .baseUrl(BASE_URL)
+        .addConverterFactory(MoshiConverterFactory.create())
+        .build()
+
+    val api: MarvelApi = retrofit.create(MarvelApi::class.java)
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,6 +112,35 @@ fun Main(header: String, name1: String, name2: String, name3: String, phrase1: S
         composable(Routes.Ironman.route) { Ironman(name2, phrase2, modifier, navController) }
         composable(Routes.Spiderman.route) { Spiderman(name3, phrase3, modifier, navController) }
     }
+    val apiKey = "b599b2cea5c8b794ba83cadf41a70e67"
+    val ts = "1"
+    val hash = md5(ts + "768333402f2317458d0ead51c300c9f3947a0b64" + apiKey)
+
+    RetrofitClient.api.getCharacters(apiKey, ts, hash).enqueue(object : Callback<MarvelResponse> {
+        override fun onResponse(call: Call<MarvelResponse>, response: Response<MarvelResponse>) {
+            if (response.isSuccessful) {
+                response.body()?.let { marvelResponse ->
+                    for (character in marvelResponse.data.results) {
+                        System.out.println("MarvelCharacter")
+                        System.out.println("Name: ${character.name}")
+                        System.out.println("Description: ${character.description}")
+                    }
+                }
+            } else {
+                System.out.println("MarvelAPI")
+                System.out.println("Error: ${response.code()}")
+            }
+        }
+
+        override fun onFailure(call: Call<MarvelResponse>, t: Throwable) {
+            System.out.println("MarvelAPI")
+            System.out.println("Failure: ${t.message}")
+        }
+    })
+}
+fun md5(input:String): String {
+    val md = MessageDigest.getInstance("MD5")
+    return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
 }
 
 @Composable

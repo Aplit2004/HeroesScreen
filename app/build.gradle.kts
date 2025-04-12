@@ -59,4 +59,7 @@ dependencies {
     implementation(libs.coil.compose)
     val nav_version = "2.8.9"
     implementation("androidx.navigation:navigation-compose:$nav_version")
+    val retrofit_version = "2.11.0"
+    implementation("com.squareup.retrofit2:retrofit:$retrofit_version")
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")//
 }
