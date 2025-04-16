@@ -1,6 +1,5 @@
 package com.example.heroesscreen
 
-import android.media.Image
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -38,8 +37,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.squareup.moshi.Json
+/*import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -62,11 +62,16 @@ data class Character(
     @Json(name = "id") val id: Int,
     @Json(name = "name") val name: String,
     @Json(name = "description") val description: String,
-    @Json(name = "thumbnail") val thumbnail: Image
+    @Json(name = "image") val image: Image
+)
+
+data class Image(
+    @Json(name = "path") val path: String,
+    @Json(name = "extension") val extension: String
 )
 
 interface MarvelApi {
-    @GET("/public/characters")
+    @GET("/v1/public/characters")
     fun getCharacters(
         @Query("apikey") apiKey: String,
         @Query("ts") ts: String,
@@ -74,16 +79,20 @@ interface MarvelApi {
     ): Call<MarvelResponse>
 }
 
+private val moshi = Moshi.Builder()
+    .add(KotlinJsonAdapterFactory())
+    .build()
+
 object RetrofitClient {
-    private const val BASE_URL = "https://gateway.marvel.com/v1"
+    private const val BASE_URL = "https://gateway.marvel.com/v1/"
 
     private val retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
-        .addConverterFactory(MoshiConverterFactory.create())
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
         .build()
 
     val api: MarvelApi = retrofit.create(MarvelApi::class.java)
-}
+}*/
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,25 +103,25 @@ class MainActivity : ComponentActivity() {
                 header = stringResource(R.string.header_text),
                 name1 = stringResource(R.string.name1_text),
                 name2 = stringResource(R.string.name2_text),
-                name3 = stringResource(R.string.name3_text),
-                phrase1 = stringResource(R.string.deadpool_text),
-                phrase2 = stringResource(R.string.ironman_text),
-                phrase3 = stringResource(R.string.spiderman_text)
+                name3 = stringResource(R.string.name3_text)
             )
         }
     }
 }
 
 @Composable
-fun Main(header: String, name1: String, name2: String, name3: String, phrase1: String, phrase2: String, phrase3: String, modifier: Modifier = Modifier) {
+fun Main(header: String, name1: String, name2: String, name3: String, modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Routes.Firstscreen.route) {
         composable(Routes.Firstscreen.route) { Firstscreen(header, name1, name2, name3, modifier, navController) }
-        composable(Routes.Deadpool.route) { Deadpool(name1, phrase1, modifier, navController) }
-        composable(Routes.Ironman.route) { Ironman(name2, phrase2, modifier, navController) }
-        composable(Routes.Spiderman.route) { Spiderman(name3, phrase3, modifier, navController) }
+        composable(Routes.Secondscreen.route + "/{name}" + "/{phrase}" + "/{link}") { stackEntry ->
+            val name = stackEntry.arguments?.getString("name")
+            val phrase = stackEntry.arguments?.getString("phrase")
+            val link = stackEntry.arguments?.getString("link")
+            Secondscreen(name, phrase, link, modifier, navController)
+        }
     }
-    val apiKey = "b599b2cea5c8b794ba83cadf41a70e67"
+    /*val apiKey = "b599b2cea5c8b794ba83cadf41a70e67"
     val ts = "1"
     val hash = md5(ts + "768333402f2317458d0ead51c300c9f3947a0b64" + apiKey)
 
@@ -122,8 +131,11 @@ fun Main(header: String, name1: String, name2: String, name3: String, phrase1: S
                 response.body()?.let { marvelResponse ->
                     for (character in marvelResponse.data.results) {
                         System.out.println("MarvelCharacter")
+                        System.out.println("Id: ${character.id}")
                         System.out.println("Name: ${character.name}")
                         System.out.println("Description: ${character.description}")
+                        System.out.println("Path: ${character.image.path}")
+                        System.out.println("Path: ${character.image.extension}")
                     }
                 }
             } else {
@@ -136,12 +148,13 @@ fun Main(header: String, name1: String, name2: String, name3: String, phrase1: S
             System.out.println("MarvelAPI")
             System.out.println("Failure: ${t.message}")
         }
-    })
+    })*/
 }
+/*
 fun md5(input:String): String {
     val md = MessageDigest.getInstance("MD5")
     return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
-}
+}*/
 
 @Composable
 fun Firstscreen(header: String, name1: String, name2: String, name3: String, modifier: Modifier, navController: NavController) {
@@ -186,6 +199,9 @@ fun Firstscreen(header: String, name1: String, name2: String, name3: String, mod
                 flingBehavior = rememberSnapFlingBehavior(listState)
             ) {
                 item {
+                    val name = stringResource(R.string.name1_text)
+                    val phrase = stringResource(R.string.deadpool_text)
+                    val link = stringResource(R.string.deadpool_link)
                     Box(
                         modifier = modifier,
                         contentAlignment = Alignment.BottomStart
@@ -202,7 +218,7 @@ fun Firstscreen(header: String, name1: String, name2: String, name3: String, mod
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onTap = {
-                                            navController.navigate(Routes.Deadpool.route)
+                                            navController.navigate(Routes.Secondscreen.route + "/$name" + "/$phrase" + "/$link")
                                         }
                                     )
                                 }
@@ -218,6 +234,9 @@ fun Firstscreen(header: String, name1: String, name2: String, name3: String, mod
                     }
                 }
                 item {
+                    val name = stringResource(R.string.name2_text)
+                    val phrase = stringResource(R.string.ironman_text)
+                    val link = stringResource(R.string.ironman_link)
                     Box(
                         modifier = modifier,
                         contentAlignment = Alignment.BottomStart
@@ -234,7 +253,7 @@ fun Firstscreen(header: String, name1: String, name2: String, name3: String, mod
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onTap = {
-                                            navController.navigate(Routes.Ironman.route)
+                                            navController.navigate("secondscreen/${name}/${phrase}/${link}")
                                         }
                                     )
                                 }
@@ -250,6 +269,9 @@ fun Firstscreen(header: String, name1: String, name2: String, name3: String, mod
                     }
                 }
                 item {
+                    val name = stringResource(R.string.name3_text)
+                    val phrase = stringResource(R.string.spiderman_text)
+                    val link = stringResource(R.string.spiderman_link)
                     Box(
                         modifier = modifier,
                         contentAlignment = Alignment.BottomStart
@@ -266,7 +288,7 @@ fun Firstscreen(header: String, name1: String, name2: String, name3: String, mod
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onTap = {
-                                            navController.navigate(Routes.Spiderman.route)
+                                            navController.navigate("secondscreen/${name}/${phrase}/${link}")
                                         }
                                     )
                                 }
@@ -287,15 +309,18 @@ fun Firstscreen(header: String, name1: String, name2: String, name3: String, mod
 }
 
 @Composable
-fun Deadpool(name1: String, phrase1: String, modifier: Modifier, navController: NavController) {
+fun Secondscreen(name: String?, phrase: String?, link: String?, modifier: Modifier, navController: NavController) {
     val arrow = painterResource(R.drawable.backarrow)
+    val nametemp: String = name.toString()
+    val phrasetemp: String = phrase.toString()
+    val linktemp: String = link.toString()
     Box(
         modifier = modifier,
         contentAlignment = Alignment.BottomStart
     )
     {
         AsyncImage(
-            model = "https://iili.io/JMnAflV.png",
+            model = linktemp,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -317,7 +342,7 @@ fun Deadpool(name1: String, phrase1: String, modifier: Modifier, navController: 
                 }
         )
         Text(
-            text = name1,
+            text = nametemp,
             fontSize = 40.sp,
             color = Color.White,
             fontWeight = FontWeight.Bold,
@@ -325,7 +350,7 @@ fun Deadpool(name1: String, phrase1: String, modifier: Modifier, navController: 
                 .padding(start = 25.dp, bottom = 150.dp)
         )
         Text(
-            text = phrase1,
+            text = phrasetemp,
             fontSize = 25.sp,
             color = Color.White,
             fontWeight = FontWeight.Bold,
@@ -335,107 +360,7 @@ fun Deadpool(name1: String, phrase1: String, modifier: Modifier, navController: 
     }
 }
 
-@Composable
-fun Ironman(name2: String, phrase2: String, modifier: Modifier, navController: NavController) {
-    val arrow = painterResource(R.drawable.backarrow)
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.BottomStart
-    )
-    {
-        AsyncImage(
-            model = "https://iili.io/JMnuDI2.png",
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-        )
-        Image(
-            painter = arrow,
-            contentDescription = null,
-            modifier = modifier
-                .height(50.dp)
-                .width(50.dp)
-                .align(Alignment.TopStart)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = {
-                            navController.navigate(Routes.Firstscreen.route)
-                        }
-                    )
-                }
-        )
-        Text(
-            text = name2,
-            fontSize = 40.sp,
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(start = 25.dp, bottom = 150.dp)
-        )
-        Text(
-            text = phrase2,
-            fontSize = 25.sp,
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(start = 25.dp, bottom = 85.dp)
-        )
-    }
-}
-
-@Composable
-fun Spiderman(name3: String, phrase3: String, modifier: Modifier, navController: NavController) {
-    val arrow = painterResource(R.drawable.backarrow)
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.BottomStart
-    )
-    {
-        AsyncImage(
-            model = "https://iili.io/JMnuyB9.png",
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-        )
-        Image(
-            painter = arrow,
-            contentDescription = null,
-            modifier = modifier
-                .height(50.dp)
-                .width(50.dp)
-                .align(Alignment.TopStart)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = {
-                            navController.navigate(Routes.Firstscreen.route)
-                        }
-                    )
-                }
-        )
-        Text(
-            text = name3,
-            fontSize = 40.sp,
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(start = 25.dp, bottom = 150.dp)
-        )
-        Text(
-            text = phrase3,
-            fontSize = 25.sp,
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(start = 25.dp, bottom = 85.dp)
-        )
-    }
-}
-
 sealed class Routes(val route: String) {
     object Firstscreen : Routes("firstscreen")
-    object Deadpool : Routes("deadpool")
-    object Ironman : Routes("ironman")
-    object Spiderman : Routes("spiderman")
+    object Secondscreen : Routes("secondscreen")
 }
