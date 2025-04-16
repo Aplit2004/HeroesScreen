@@ -7,4 +7,7 @@
     <string name="deadpool_text">Please don\'t make the super suit green...or animated!</string>
     <string name="ironman_text">I AM IRON MAN</string>
     <string name="spiderman_text">In iron suit</string>
+    <string name="deadpool_link">https://iili.io/JMnAflV.png</string>
+    <string name="ironman_link">https://iili.io/JMnuDI2.png</string>
+    <string name="spiderman_link">https://iili.io/JMnuyB9.png</string>
 </resources>
